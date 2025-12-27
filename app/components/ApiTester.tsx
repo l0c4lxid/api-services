@@ -126,18 +126,27 @@ export default function ApiTester({ endpoint }: ApiTesterProps) {
 
       let output = result.text;
       let extractedCost: string | null = "Local AI Assistant";
-      let parsedJson: unknown = null;
+      let parsedJson: { text?: string; cost?: string } | Record<string, unknown> | null =
+        null;
       try {
-        parsedJson = JSON.parse(result.text);
-        if (typeof parsedJson?.text === "string") {
-          output = parsedJson.text;
+        parsedJson = JSON.parse(result.text) as
+          | { text?: string; cost?: string }
+          | Record<string, unknown>;
+        if (parsedJson && typeof parsedJson === "object" && "text" in parsedJson) {
+          const maybeText = (parsedJson as { text?: unknown }).text;
+          if (typeof maybeText === "string") {
+            output = maybeText;
+          }
         } else if (parsedJson && typeof parsedJson === "object") {
           output = JSON.stringify(parsedJson, null, 2);
         } else {
           output = String(parsedJson);
         }
-        if (typeof parsedJson?.cost === "string") {
-          extractedCost = parsedJson.cost;
+        if (parsedJson && typeof parsedJson === "object" && "cost" in parsedJson) {
+          const maybeCost = (parsedJson as { cost?: unknown }).cost;
+          if (typeof maybeCost === "string") {
+            extractedCost = maybeCost;
+          }
         }
       } catch {
         // keep raw text
