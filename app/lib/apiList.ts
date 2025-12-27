@@ -68,4 +68,23 @@ export const apiList: ApiEndpoint[] = [
     modelOptions: ["gpt-4o-mini", "gpt-4o"],
     defaultModel: "gpt-4o-mini",
   },
+  {
+    id: "generate-image",
+    name: "Image Generation",
+    method: "POST",
+    path: "/api/generate-image",
+    category: "Vision",
+    description: "Generate image dari prompt menggunakan LLM7.io.",
+    status: "ready",
+    testable: true,
+    defaultHeaders: `{
+  "Content-Type": "application/json"
+}`,
+    defaultBody: `{
+  "prompt": "A minimal dashboard UI on a dark background",
+  "size": "1024x1024",
+  "n": 1,
+  "seed": 123
+}`,
+  },
 ];
