@@ -1,0 +1,55 @@
+import { llm7 } from "@/lib/llm7";
+
+export const runtime = "nodejs";
+
+type AskPayload = {
+  prompt?: string;
+  model?: string;
+};
+
+export async function POST(request: Request) {
+  if (!process.env.LLM7_API_KEY) {
+    return new Response("Missing LLM7_API_KEY. Check .env.local.", {
+      status: 500,
+    });
+  }
+
+  let payload: AskPayload;
+  try {
+    payload = (await request.json()) as AskPayload;
+  } catch (error) {
+    console.error("Invalid JSON payload", error);
+    return new Response("Invalid JSON payload.", { status: 400 });
+  }
+
+  const prompt =
+    typeof payload.prompt === "string" ? payload.prompt.trim() : "";
+  const model =
+    typeof payload.model === "string" && payload.model.trim()
+      ? payload.model.trim()
+      : "gpt-4o-mini";
+
+  if (!prompt) {
+    return new Response("Prompt is required.", { status: 400 });
+  }
+
+  try {
+    const completion = await llm7.chat.completions.create({
+      model,
+      messages: [{ role: "user", content: prompt }],
+    });
+
+    const text = completion.choices?.[0]?.message?.content ?? "";
+
+    if (!text) {
+      return new Response("Empty response from LLM7.", { status: 502 });
+    }
+
+    return Response.json({ text, model });
+  } catch (error) {
+    console.error("LLM7 API error", error);
+    const message =
+      error instanceof Error ? error.message : "LLM7 API error.";
+    return new Response(`LLM7 API error: ${message}`, { status: 500 });
+  }
+}

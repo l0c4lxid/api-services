@@ -16,12 +16,12 @@ export type ApiEndpoint = {
 
 export const apiList: ApiEndpoint[] = [
   {
-    id: "gemini-generate",
-    name: "Generate Content",
+    id: "llm7-ask",
+    name: "Ask LLM7",
     method: "POST",
-    path: "/api/gemini",
-    category: "Gemini",
-    description: "Kirim prompt ke Gemini dan terima response text.",
+    path: "/api/ask",
+    category: "LLM7",
+    description: "Kirim prompt ke LLM7.io dan terima response text.",
     status: "ready",
     testable: true,
     defaultHeaders: `{
@@ -29,7 +29,8 @@ export const apiList: ApiEndpoint[] = [
 }`,
     defaultQuery: "",
     defaultBody: `{
-  "prompt": "Hello Gemini"
+  "prompt": "Hello LLM7",
+  "model": "gpt-4o-mini"
 }`,
   },
   {
@@ -74,7 +75,7 @@ export const apiList: ApiEndpoint[] = [
 }`,
     defaultBody: `{
   "name": "dev-key",
-  "scope": "read:gemini"
+  "scope": "read:llm7"
 }`,
   },
 ];

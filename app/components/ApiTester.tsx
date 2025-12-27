@@ -147,7 +147,7 @@ export default function ApiTester({ endpoint }: ApiTesterProps) {
           <Textarea
             value={headers}
             onChange={(event) => setHeaders(event.target.value)}
-            className="min-h-[120px] font-mono text-xs"
+            className="h-32 resize-none overflow-hidden font-mono text-xs"
           />
         </div>
         <div className="space-y-2">
@@ -161,7 +161,9 @@ export default function ApiTester({ endpoint }: ApiTesterProps) {
             className="font-mono text-xs"
           />
           <p className="text-xs text-muted-foreground">
-            Boleh JSON juga: {"{ \"key\": \"value\" }"}
+            Opsional. Bisa pakai query string atau JSON object, lalu akan
+            diubah jadi query string (contoh: limit=10&sort=desc atau
+            {"{ \"limit\": 10, \"sort\": \"desc\" }"}).
           </p>
         </div>
       </div>
@@ -173,7 +175,7 @@ export default function ApiTester({ endpoint }: ApiTesterProps) {
         <Textarea
           value={body}
           onChange={(event) => setBody(event.target.value)}
-          className="min-h-[140px] font-mono text-xs"
+          className="h-40 resize-none overflow-hidden font-mono text-xs"
           disabled={endpoint.method === "GET"}
         />
         {endpoint.method === "GET" ? (

@@ -30,7 +30,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
             </span>
             <div>
               <p className="text-sm font-semibold text-foreground">
-                Gemini API Console
+                LLM7 API Console
               </p>
               <p className="text-xs text-muted-foreground">
                 Custom API documentation

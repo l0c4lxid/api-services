@@ -13,9 +13,9 @@ const jetBrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Gemini API Console",
+  title: "LLM7 API Console",
   description:
-    "Custom API documentation and testing console for Gemini endpoints.",
+    "Custom API documentation and testing console for LLM7 endpoints.",
 };
 
 export default function RootLayout({
