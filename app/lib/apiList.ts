@@ -15,6 +15,24 @@ export type ApiEndpoint = {
   defaultModel?: string;
 };
 
+const LXID_MODELS = [
+  "gpt-4.1-nano-2025-04-14",
+  "gpt-5-mini",
+  "deepseek-v3.1",
+  "mistral-small-3.1-24b-instruct-2503",
+  "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+  "codestral-2405",
+  "codestral-2501",
+  "ministral-8b-2512",
+  "gemini-2.5-flash-lite",
+  "gemini-search",
+  "bidara",
+  "glm-4.5-flash",
+  "roblox-rp",
+];
+
+const DEFAULT_LXID_MODEL = "gemini-2.5-flash-lite";
+
 export const apiList: ApiEndpoint[] = [
   {
     id: "llm7-ask",
@@ -30,10 +48,10 @@ export const apiList: ApiEndpoint[] = [
 }`,
     defaultBody: `{
   "prompt": "Hello LXID",
-  "model": "gpt-4o-mini"
+  "model": "${DEFAULT_LXID_MODEL}"
 }`,
-    modelOptions: ["gpt-4o-mini", "gpt-4o", "gpt-4.1-mini"],
-    defaultModel: "gpt-4o-mini",
+    modelOptions: LXID_MODELS,
+    defaultModel: DEFAULT_LXID_MODEL,
   },
   {
     id: "health-check",
@@ -63,10 +81,11 @@ export const apiList: ApiEndpoint[] = [
 }`,
     defaultBody: `{
   "prompt": "Describe the image briefly.",
-  "imageUrl": "https://example.com/image.jpg"
+  "imageUrl": "https://example.com/image.jpg",
+  "model": "${DEFAULT_LXID_MODEL}"
 }`,
-    modelOptions: ["gpt-4o-mini", "gpt-4o"],
-    defaultModel: "gpt-4o-mini",
+    modelOptions: LXID_MODELS,
+    defaultModel: DEFAULT_LXID_MODEL,
   },
   {
     id: "generate-image",

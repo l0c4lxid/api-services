@@ -7,6 +7,8 @@ type AskPayload = {
   model?: string;
 };
 
+const DEFAULT_MODEL = "gemini-2.5-flash-lite";
+
 export async function POST(request: Request) {
   if (!process.env.LLM7_API_KEY) {
     return new Response("Missing LLM7_API_KEY. Check .env.local.", {
@@ -27,7 +29,7 @@ export async function POST(request: Request) {
   const model =
     typeof payload.model === "string" && payload.model.trim()
       ? payload.model.trim()
-      : "gpt-4o-mini";
+      : DEFAULT_MODEL;
 
   if (!prompt) {
     return new Response("Prompt is required.", { status: 400 });

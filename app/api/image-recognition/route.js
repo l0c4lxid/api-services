@@ -32,9 +32,14 @@ export async function POST(request) {
     );
   }
 
+  const model =
+    typeof payload?.model === "string" && payload.model.trim()
+      ? payload.model.trim()
+      : "gemini-2.5-flash-lite";
+
   // Build request payload for LXID vision-capable chat.
   const body = {
-    model: "gpt-4o-mini",
+    model,
     messages: [
       {
         role: "user",
