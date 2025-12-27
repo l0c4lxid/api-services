@@ -67,11 +67,9 @@ export default function DocsPage() {
 
             <Card className="border-border/60 bg-card/80 shadow-sm">
               <CardContent className="space-y-2 p-5 text-sm text-muted-foreground">
-                <p className="font-semibold text-foreground">Cara menggunakan</p>
-                <p>1. Pastikan LLM7_API_KEY sudah di .env.local</p>
-                <p>2. Jalankan npm run dev</p>
-                <p>3. Buka /docs</p>
-                <p>4. Klik Execute untuk mengetes endpoint</p>
+                <p className="font-semibold text-foreground">Usage Notes</p>
+                <p>Endpoint ini siap dipakai untuk testing internal.</p>
+                <p>Gunakan panel di bawah untuk melihat request &amp; response.</p>
               </CardContent>
             </Card>
           </section>

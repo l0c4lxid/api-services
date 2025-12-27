@@ -51,6 +51,23 @@ export default function ApiTester({ endpoint }: ApiTesterProps) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const updateBodyWithModel = (nextModel: string) => {
+    if (!endpoint.modelOptions?.length) return;
+    try {
+      const parsed = body.trim() ? JSON.parse(body) : {};
+      const nextBody = { ...parsed, model: nextModel };
+      setBody(JSON.stringify(nextBody, null, 2));
+    } catch {
+      try {
+        const fallback = initialBody ? JSON.parse(initialBody) : {};
+        const nextBody = { ...fallback, model: nextModel };
+        setBody(JSON.stringify(nextBody, null, 2));
+      } catch {
+        setBody(JSON.stringify({ prompt: "", model: nextModel }, null, 2));
+      }
+    }
+  };
+
   const handleSend = async () => {
     setError(null);
     setResponse("");
@@ -153,7 +170,16 @@ export default function ApiTester({ endpoint }: ApiTesterProps) {
             </p>
             <select
               value={model}
-              onChange={(event) => setModel(event.target.value)}
+              onChange={(event) => {
+                const nextModel = event.target.value;
+                setModel(nextModel);
+                updateBodyWithModel(nextModel);
+                setStatus(null);
+                setResponse("");
+                setDuration(null);
+                setCostLabel(null);
+                setError(null);
+              }}
               className="h-10 w-full rounded-md border border-input bg-background px-3 text-xs font-mono text-foreground"
             >
               {endpoint.modelOptions.map((option) => (
@@ -208,6 +234,9 @@ export default function ApiTester({ endpoint }: ApiTesterProps) {
         ) : null}
         {status !== null ? (
           <Badge variant="outline">Status: {status}</Badge>
+        ) : null}
+        {endpoint.modelOptions?.length && model ? (
+          <Badge variant="secondary">Model: {model}</Badge>
         ) : null}
         {costLabel ? <Badge variant="secondary">{costLabel}</Badge> : null}
       </div>

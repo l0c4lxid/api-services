@@ -34,9 +34,16 @@ export async function POST(request: Request) {
   }
 
   try {
+    const systemPrompt =
+      "Kamu adalah Local AI Assistant untuk API Console internal. " +
+      "Jawab dalam Bahasa Indonesia, ringkas, jelas, dan sesuai kebutuhan developer. " +
+      "Jika ditanya identitas, jelaskan bahwa kamu asisten lokal untuk pengujian API dan dokumentasi.";
     const completion = await llm7.chat.completions.create({
       model,
-      messages: [{ role: "user", content: prompt }],
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: prompt },
+      ],
     });
 
     const text = completion.choices?.[0]?.message?.content ?? "";
