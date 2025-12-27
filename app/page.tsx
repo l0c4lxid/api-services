@@ -1,229 +1,122 @@
-/**
- * Tutorial singkat:
- * 1) Ambil API key di Google AI Studio: https://aistudio.google.com/apikey
- * 2) Buat `.env.local` di root project dan isi:
- *    GEMINI_API_KEY=YOUR_API_KEY_HERE
- * 3) Jalankan project: npm install && npm run dev
- * 4) Test API streaming:
- *    curl -N -H "Content-Type: application/json" -d '{"prompt":"Hello Gemini"}' http://localhost:3000/api/gemini
- */
 "use client";
 
-import { useCallback, useRef, useState } from "react";
-import PromptForm from "@/components/PromptForm";
-import ResponseViewer from "@/components/ResponseViewer";
-import { DEFAULT_MODEL, MODEL_DEFINITIONS } from "@/lib/models";
+import { useState } from "react";
+import Link from "next/link";
+import {
+  Activity,
+  BookOpen,
+  LineChart,
+  PlugZap,
+  ShieldCheck,
+  Zap,
+} from "lucide-react";
+import ApiHero from "@/app/components/ApiHero";
+import FeatureCard from "@/app/components/FeatureCard";
+import Navbar from "@/app/components/Navbar";
+import Sidebar from "@/app/components/Sidebar";
+import { Button } from "@/app/components/ui/button";
+import { Card, CardContent } from "@/app/components/ui/card";
 
-const PRESET_PROMPTS = [
+const features = [
   {
-    label: "Explain",
-    value: "Explain quantum computing like I am 12 years old.",
+    title: "Fast & Reliable",
+    description: "Optimized latency pipeline with streaming response.",
+    icon: Zap,
   },
   {
-    label: "Summarize",
-    value: "Summarize this in 5 bullet points: The rise of edge computing.",
+    title: "Secure",
+    description: "Server-side API key management with access controls.",
+    icon: ShieldCheck,
   },
   {
-    label: "Code",
-    value: "Write a TypeScript function to debounce user input by 300ms.",
+    title: "Easy Integration",
+    description: "Simple internal endpoints for app teams.",
+    icon: PlugZap,
+  },
+  {
+    title: "Analytics",
+    description: "Monitor usage, latency, and error rates.",
+    icon: LineChart,
   },
 ];
 
-const MODEL_OPTIONS = MODEL_DEFINITIONS.map((model) => ({
-  label: model.label,
-  value: model.id,
-  helper: model.helper,
-  disabled: !model.supported,
-  reason: model.reason,
-}));
-
 export default function Home() {
-  const [prompt, setPrompt] = useState("");
-  const [response, setResponse] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [model, setModel] = useState(DEFAULT_MODEL);
-  const currentModel = MODEL_DEFINITIONS.find((item) => item.id === model);
-  const thinkingEnabled = currentModel?.supportsThinking ?? false;
-  const toolsEnabled = currentModel?.supportsTools ?? false;
-
-  const controllerRef = useRef<AbortController | null>(null);
-  const requestIdRef = useRef(0);
-
-  const handleGenerate = useCallback(async () => {
-    const trimmedPrompt = prompt.trim();
-    if (!trimmedPrompt) {
-      setError("Prompt masih kosong. Coba tulis pertanyaan terlebih dahulu.");
-      return;
-    }
-
-    if (controllerRef.current) {
-      controllerRef.current.abort();
-    }
-
-    const requestId = ++requestIdRef.current;
-    const controller = new AbortController();
-    controllerRef.current = controller;
-
-    setLoading(true);
-    setError(null);
-    setResponse("");
-    setCopied(false);
-
-    try {
-      const result = await fetch("/api/gemini", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ prompt: trimmedPrompt, model }),
-        signal: controller.signal,
-      });
-
-      if (!result.ok) {
-        const message = await result.text();
-        if (requestIdRef.current === requestId) {
-          setError(message || "Request failed. Please try again.");
-        }
-        return;
-      }
-
-      if (!result.body) {
-        if (requestIdRef.current === requestId) {
-          setError("Response body kosong. Coba ulangi request.");
-        }
-        return;
-      }
-
-      const reader = result.body.getReader();
-      const decoder = new TextDecoder();
-
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        if (value) {
-          const chunk = decoder.decode(value, { stream: true });
-          setResponse((prev) => prev + chunk);
-        }
-      }
-
-      const tail = decoder.decode();
-      if (tail) {
-        setResponse((prev) => prev + tail);
-      }
-    } catch (err) {
-      if ((err as DOMException).name === "AbortError") {
-        return;
-      }
-      if (requestIdRef.current === requestId) {
-        setError(err instanceof Error ? err.message : "Unexpected error.");
-      }
-    } finally {
-      if (requestIdRef.current === requestId) {
-        setLoading(false);
-        controllerRef.current = null;
-      }
-    }
-  }, [prompt]);
-
-  const handlePreset = useCallback((value: string) => {
-    setPrompt(value);
-  }, []);
-
-  const handleClear = useCallback(() => {
-    if (controllerRef.current) {
-      controllerRef.current.abort();
-      controllerRef.current = null;
-    }
-    requestIdRef.current += 1;
-    setPrompt("");
-    setResponse("");
-    setError(null);
-    setCopied(false);
-    setLoading(false);
-  }, []);
-
-  const handleCopy = useCallback(async () => {
-    if (!response.trim()) return;
-    try {
-      await navigator.clipboard.writeText(response);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1200);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Copy failed.");
-    }
-  }, [response]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      <div className="relative isolate flex min-h-screen items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -top-24 left-1/2 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-indigo-500/20 blur-[140px]" />
-          <div className="absolute bottom-0 right-0 h-[360px] w-[360px] rounded-full bg-cyan-500/20 blur-[140px]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(56,189,248,0.12),transparent_55%)]" />
-          <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(15,23,42,0.92),rgba(2,6,23,0.92))]" />
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-        <main className="relative z-10 w-full max-w-5xl">
-          <div className="rounded-[28px] border border-white/10 bg-slate-900/70 p-6 shadow-2xl shadow-indigo-500/10 backdrop-blur xl:p-10">
-            <div className="flex flex-col gap-6">
-              <div className="space-y-4">
-                <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.3em] text-slate-400">
-                  <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-                    Gemini Playground
-                  </span>
-                  <span className="rounded-full border border-indigo-400/30 bg-indigo-500/10 px-3 py-1 text-indigo-200">
-                    Streaming
-                  </span>
-                  <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-cyan-200">
-                    Google Search tool
-                  </span>
-                </div>
-                <h1 className="text-3xl font-semibold text-white sm:text-4xl">
-                  Test Gemini with real-time responses
-                </h1>
-                <p className="max-w-2xl text-base text-slate-300 sm:text-lg">
-                  Kirim prompt, lihat hasil streaming, dan iterasi cepat seperti di
-                  Google AI Studio. Semua request aman lewat route internal.
-                </p>
-              </div>
+      <div className="lg:pl-72">
+        <Navbar onMenuClick={() => setSidebarOpen(true)} />
 
-              <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-                <PromptForm
-                  prompt={prompt}
-                  presets={PRESET_PROMPTS}
-                  model={model}
-                  models={MODEL_OPTIONS}
-                  loading={loading}
-                  error={error}
-                  onPromptChange={setPrompt}
-                  onModelChange={setModel}
-                  onPreset={handlePreset}
-                  onClear={handleClear}
-                  onSubmit={handleGenerate}
-                />
-                <ResponseViewer
-                  response={response}
-                  loading={loading}
-                  error={error}
-                  copied={copied}
-                  onCopy={handleCopy}
-                />
-              </div>
-
-              <div className="rounded-2xl border border-white/10 bg-slate-950/40 p-4 text-xs text-slate-400">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span>Model: {model}</span>
-                  <span>
-                    Thinking level: {thinkingEnabled ? "HIGH" : "Off"}
-                  </span>
-                  <span>Tools: {toolsEnabled ? "Google Search" : "Off"}</span>
-                  <span>Route: /api/gemini</span>
-                </div>
-              </div>
-            </div>
+        <main className="mx-auto flex max-w-6xl flex-col gap-10 px-6 pb-16 pt-8">
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <ApiHero totalEndpoints={50} categories={8} />
           </div>
+
+          <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+            <Card className="border-border/60 bg-card/80 shadow-sm">
+              <CardContent className="space-y-4 p-6">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <BookOpen className="h-4 w-4 text-primary" />
+                  API Documentation
+                </div>
+                <p className="text-xl font-semibold text-foreground">
+                  Semua endpoint internal tersedia dalam satu panel dokumentasi.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Gunakan halaman docs untuk melihat detail request, contoh
+                  payload, dan melakukan testing langsung tanpa Postman.
+                </p>
+                <Button asChild className="w-fit">
+                  <Link href="/docs">Go to Docs -&gt;</Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border/60 bg-card/80 shadow-sm">
+              <CardContent className="space-y-4 p-6">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Activity className="h-4 w-4 text-primary" />
+                  API Overview
+                </div>
+                <p className="text-lg font-semibold text-foreground">
+                  Status layanan siap dipakai untuk testing internal.
+                </p>
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <div className="flex items-center justify-between">
+                    <span>Health</span>
+                    <span className="font-semibold text-foreground">Ready</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Latency target</span>
+                    <span className="font-semibold text-foreground">200ms</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Streaming</span>
+                    <span className="font-semibold text-foreground">On</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-semibold text-foreground">
+                Key Features
+              </h2>
+              <Button type="button" variant="outline" size="sm">
+                Explore roadmap
+              </Button>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              {features.map((feature) => (
+                <FeatureCard key={feature.title} {...feature} />
+              ))}
+            </div>
+          </section>
         </main>
       </div>
     </div>
