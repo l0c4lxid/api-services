@@ -50,34 +50,22 @@ export const apiList: ApiEndpoint[] = [
     defaultBody: "",
   },
   {
-    id: "usage-metrics",
-    name: "Usage Metrics",
-    method: "GET",
-    path: "/api/metrics",
-    category: "Analytics",
-    description: "Ringkasan metrik penggunaan API.",
-    status: "beta",
-    testable: false,
-    defaultHeaders: `{
-  "Content-Type": "application/json"
-}`,
-    defaultBody: "",
-  },
-  {
-    id: "api-keys",
-    name: "API Keys",
+    id: "image-recognition",
+    name: "Image Recognition",
     method: "POST",
-    path: "/api/keys",
-    category: "Security",
-    description: "Buat atau rotasi API key internal.",
-    status: "beta",
-    testable: false,
+    path: "/api/image-recognition",
+    category: "Vision",
+    description: "Kirim prompt + image URL untuk analisis visual.",
+    status: "ready",
+    testable: true,
     defaultHeaders: `{
   "Content-Type": "application/json"
 }`,
     defaultBody: `{
-  "name": "dev-key",
-  "scope": "read:llm7"
+  "prompt": "Describe the image briefly.",
+  "imageUrl": "https://example.com/image.jpg"
 }`,
+    modelOptions: ["gpt-4o-mini", "gpt-4o"],
+    defaultModel: "gpt-4o-mini",
   },
 ];

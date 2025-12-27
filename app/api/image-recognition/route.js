@@ -1,0 +1,79 @@
+export const runtime = "nodejs";
+
+// POST /api/image-recognition
+export async function POST(request) {
+  // Validate API key existence.
+  if (!process.env.LLM7_API_KEY) {
+    return Response.json(
+      { error: "Missing LLM7_API_KEY. Check .env.local." },
+      { status: 500 },
+    );
+  }
+
+  // Parse JSON body.
+  let payload;
+  try {
+    payload = await request.json();
+  } catch (error) {
+    console.error("Invalid JSON payload", error);
+    return Response.json({ error: "Invalid JSON payload." }, { status: 400 });
+  }
+
+  const prompt =
+    typeof payload?.prompt === "string" ? payload.prompt.trim() : "";
+  const imageUrl =
+    typeof payload?.imageUrl === "string" ? payload.imageUrl.trim() : "";
+
+  // Basic input validation.
+  if (!prompt || !imageUrl) {
+    return Response.json(
+      { error: "prompt and imageUrl are required." },
+      { status: 400 },
+    );
+  }
+
+  // Build request payload for LLM7 vision-capable chat.
+  const body = {
+    model: "gpt-4o-mini",
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: prompt },
+          { type: "image_url", image_url: { url: imageUrl } },
+        ],
+      },
+    ],
+  };
+
+  try {
+    // Call LLM7 API directly (OpenAI-compatible).
+    const response = await fetch("https://api.llm7.io/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.LLM7_API_KEY}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    // Return upstream response as-is.
+    const text = await response.text();
+    return new Response(text, {
+      status: response.status,
+      headers: {
+        "Content-Type":
+          response.headers.get("content-type") ?? "application/json",
+      },
+    });
+  } catch (error) {
+    console.error("LLM7 API error", error);
+    return Response.json(
+      {
+        error:
+          error instanceof Error ? error.message : "LLM7 API error occurred.",
+      },
+      { status: 500 },
+    );
+  }
+}
