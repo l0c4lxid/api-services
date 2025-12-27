@@ -132,7 +132,12 @@ export default function ApiTester({ endpoint }: ApiTesterProps) {
         parsedJson = JSON.parse(result.text) as
           | { text?: string; cost?: string }
           | Record<string, unknown>;
-        if (parsedJson && typeof parsedJson === "object" && "text" in parsedJson) {
+        if (
+          parsedJson &&
+          typeof parsedJson === "object" &&
+          "text" in parsedJson &&
+          endpoint.id !== "llm7-ask"
+        ) {
           const maybeText = (parsedJson as { text?: unknown }).text;
           if (typeof maybeText === "string") {
             output = maybeText;
