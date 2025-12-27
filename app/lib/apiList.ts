@@ -57,7 +57,7 @@ export const apiList: ApiEndpoint[] = [
   "Content-Type": "application/json"
 }`,
     defaultBody: `{
-  "prompt": "Hello LXID",
+  "prompt": "Hello, siapa kamu?",
   "model": "${DEFAULT_LXID_MODEL}"
 }`,
     modelOptions: LXID_MODELS,
