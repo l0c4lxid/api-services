@@ -1,4 +1,4 @@
-import { llm7 } from "@/lib/llm7";
+import { getLlm7Client } from "@/lib/llm7";
 
 export const runtime = "nodejs";
 
@@ -47,6 +47,7 @@ export async function POST(request: Request) {
       "Kamu adalah Local AI Assistant untuk API Console internal. " +
       "Jawab dalam Bahasa Indonesia, ringkas, jelas, dan sesuai kebutuhan developer. " +
       "Jika ditanya identitas, jelaskan bahwa kamu asisten lokal untuk pengujian API dan dokumentasi.";
+    const llm7 = getLlm7Client();
     const completion = await llm7.chat.completions.create({
       model,
       messages: [
