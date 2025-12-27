@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Badge } from "@/app/components/ui/badge";
 import { Button } from "@/app/components/ui/button";
-import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
 import type { ApiEndpoint } from "@/app/lib/apiList";
 import { fetchWithTiming } from "@/app/lib/fetcher";
@@ -14,7 +13,6 @@ type ApiTesterProps = {
 
 type ParsedPayload = {
   headers: Record<string, string>;
-  query: string;
   body?: string;
 };
 
@@ -37,32 +35,19 @@ function parseJsonField(value: string, fieldName: string) {
   throw new Error(`Invalid JSON for ${fieldName}`);
 }
 
-function buildQueryString(query: string) {
-  const trimmed = query.trim();
-  if (!trimmed) {
-    return "";
-  }
-
-  if (trimmed.startsWith("{")) {
-    const parsed = parseJsonField(trimmed, "query params");
-    return new URLSearchParams(parsed).toString();
-  }
-
-  return trimmed.replace(/^\?/, "");
-}
-
 export default function ApiTester({ endpoint }: ApiTesterProps) {
   const initialHeaders =
     endpoint.defaultHeaders ?? `{\n  "Content-Type": "application/json"\n}`;
-  const initialQuery = endpoint.defaultQuery ?? "";
   const initialBody = endpoint.defaultBody ?? "";
+  const initialModel = endpoint.defaultModel ?? "";
 
   const [headers, setHeaders] = useState(initialHeaders);
-  const [query, setQuery] = useState(initialQuery);
   const [body, setBody] = useState(initialBody);
+  const [model, setModel] = useState(initialModel);
   const [status, setStatus] = useState<number | null>(null);
   const [response, setResponse] = useState("");
   const [duration, setDuration] = useState<number | null>(null);
+  const [costLabel, setCostLabel] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -75,15 +60,18 @@ export default function ApiTester({ endpoint }: ApiTesterProps) {
     let parsed: ParsedPayload;
     try {
       const parsedHeaders = parseJsonField(headers, "headers");
-      const queryString = buildQueryString(query);
-      const parsedBody =
+      let parsedBody =
         endpoint.method === "GET" || !body.trim()
           ? undefined
           : JSON.stringify(JSON.parse(body));
 
+      if (endpoint.modelOptions?.length && model) {
+        const bodyValue = body.trim() ? JSON.parse(body) : {};
+        parsedBody = JSON.stringify({ ...bodyValue, model });
+      }
+
       parsed = {
         headers: parsedHeaders,
-        query: queryString,
         body: parsedBody,
       };
     } catch (err) {
@@ -91,13 +79,9 @@ export default function ApiTester({ endpoint }: ApiTesterProps) {
       return;
     }
 
-    const url = parsed.query
-      ? `${endpoint.path}?${parsed.query}`
-      : endpoint.path;
-
     setLoading(true);
     try {
-      const result = await fetchWithTiming(url, {
+      const result = await fetchWithTiming(endpoint.path, {
         method: endpoint.method,
         headers: parsed.headers,
         body: parsed.body,
@@ -107,14 +91,25 @@ export default function ApiTester({ endpoint }: ApiTesterProps) {
       setDuration(result.durationMs);
 
       let output = result.text;
+      let extractedCost: string | null = "Local AI Assistant";
       try {
         const parsedJson = JSON.parse(result.text);
-        output = JSON.stringify(parsedJson, null, 2);
+        if (typeof parsedJson?.text === "string") {
+          output = parsedJson.text;
+        } else if (parsedJson && typeof parsedJson === "object") {
+          output = JSON.stringify(parsedJson, null, 2);
+        } else {
+          output = String(parsedJson);
+        }
+        if (typeof parsedJson?.cost === "string") {
+          extractedCost = parsedJson.cost;
+        }
       } catch {
         // keep raw text
       }
 
       setResponse(output);
+      setCostLabel(extractedCost);
       if (!result.ok) {
         setError(`API Error: ${result.text || "Unknown error"}`);
       }
@@ -129,11 +124,12 @@ export default function ApiTester({ endpoint }: ApiTesterProps) {
 
   const handleClear = () => {
     setHeaders(initialHeaders);
-    setQuery(initialQuery);
     setBody(initialBody);
+    setModel(initialModel);
     setStatus(null);
     setResponse("");
     setDuration(null);
+    setCostLabel(null);
     setError(null);
   };
 
@@ -150,22 +146,27 @@ export default function ApiTester({ endpoint }: ApiTesterProps) {
             className="h-32 resize-none overflow-hidden font-mono text-xs"
           />
         </div>
-        <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-            Query Params
-          </p>
-          <Input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="limit=10&sort=desc"
-            className="font-mono text-xs"
-          />
-          <p className="text-xs text-muted-foreground">
-            Opsional. Bisa pakai query string atau JSON object, lalu akan
-            diubah jadi query string (contoh: limit=10&sort=desc atau
-            {"{ \"limit\": 10, \"sort\": \"desc\" }"}).
-          </p>
-        </div>
+        {endpoint.modelOptions?.length ? (
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              Model
+            </p>
+            <select
+              value={model}
+              onChange={(event) => setModel(event.target.value)}
+              className="h-10 w-full rounded-md border border-input bg-background px-3 text-xs font-mono text-foreground"
+            >
+              {endpoint.modelOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-muted-foreground">
+              Pilih model untuk request ke LLM7.
+            </p>
+          </div>
+        ) : null}
       </div>
 
       <div className="space-y-2">
@@ -208,6 +209,7 @@ export default function ApiTester({ endpoint }: ApiTesterProps) {
         {status !== null ? (
           <Badge variant="outline">Status: {status}</Badge>
         ) : null}
+        {costLabel ? <Badge variant="secondary">{costLabel}</Badge> : null}
       </div>
 
       <div className="space-y-2">

@@ -10,8 +10,9 @@ export type ApiEndpoint = {
   status: "ready" | "beta";
   testable: boolean;
   defaultHeaders?: string;
-  defaultQuery?: string;
   defaultBody?: string;
+  modelOptions?: string[];
+  defaultModel?: string;
 };
 
 export const apiList: ApiEndpoint[] = [
@@ -27,11 +28,12 @@ export const apiList: ApiEndpoint[] = [
     defaultHeaders: `{
   "Content-Type": "application/json"
 }`,
-    defaultQuery: "",
     defaultBody: `{
   "prompt": "Hello LLM7",
   "model": "gpt-4o-mini"
 }`,
+    modelOptions: ["gpt-4o-mini", "gpt-4o", "gpt-4.1-mini"],
+    defaultModel: "gpt-4o-mini",
   },
   {
     id: "health-check",
@@ -45,7 +47,7 @@ export const apiList: ApiEndpoint[] = [
     defaultHeaders: `{
   "Content-Type": "application/json"
 }`,
-    defaultQuery: "verbose=true",
+    defaultBody: "",
   },
   {
     id: "usage-metrics",
@@ -59,7 +61,7 @@ export const apiList: ApiEndpoint[] = [
     defaultHeaders: `{
   "Content-Type": "application/json"
 }`,
-    defaultQuery: "range=7d",
+    defaultBody: "",
   },
   {
     id: "api-keys",

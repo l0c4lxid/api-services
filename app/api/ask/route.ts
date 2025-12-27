@@ -45,7 +45,7 @@ export async function POST(request: Request) {
       return new Response("Empty response from LLM7.", { status: 502 });
     }
 
-    return Response.json({ text, model });
+    return Response.json({ text, model, cost: "Local AI Assistant" });
   } catch (error) {
     console.error("LLM7 API error", error);
     const message =
