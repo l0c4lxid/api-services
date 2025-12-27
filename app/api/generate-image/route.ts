@@ -111,7 +111,7 @@ async function getDefaultModel(forceRefresh = false) {
       },
     });
     if (!response.ok) {
-      throw new Error(`LLM7 models request failed (${response.status}).`);
+      throw new Error(`LXID models request failed (${response.status}).`);
     }
     const data = await response.json();
     const models: Llm7Model[] = Array.isArray(data)
@@ -125,13 +125,13 @@ async function getDefaultModel(forceRefresh = false) {
     cachedAt = Date.now();
     return cachedModel;
   } catch (error) {
-    console.error("Failed to fetch LLM7 models", error);
+    console.error("Failed to fetch LXID models", error);
     return DEFAULT_MODEL;
   }
 }
 
 function parseLlm7Error(error: unknown) {
-  const fallback = "LLM7 image generation failed.";
+  const fallback = "LXID image generation failed.";
   if (!error || typeof error !== "object") {
     return { message: fallback, status: 500 };
   }
@@ -146,10 +146,10 @@ function parseLlm7Error(error: unknown) {
   const rawMessage = anyError.error?.message || anyError.message;
   const message =
     rawMessage && /no body/i.test(rawMessage) && status === 400
-      ? "LLM7 rejected the request (400). Check model, size, n, seed, or plan."
+      ? "LXID rejected the request (400). Check model, size, n, seed, or plan."
       : rawMessage ||
         (status === 400
-          ? "LLM7 rejected the request (400). Check model, size, n, or seed."
+          ? "LXID rejected the request (400). Check model, size, n, or seed."
           : fallback);
 
   return { message, status };
@@ -260,14 +260,14 @@ export async function POST(request: Request) {
           const retryText = await retryResponse.text();
           if (!retryResponse.ok) {
             return Response.json(
-              { error: retryText || "LLM7 image generation failed." },
+              { error: retryText || "LXID image generation failed." },
               { status: retryResponse.status },
             );
           }
           imageResponse = JSON.parse(retryText);
         } else {
           return Response.json(
-            { error: fallbackText || "LLM7 image generation failed." },
+            { error: fallbackText || "LXID image generation failed." },
             { status: fallback.status },
           );
         }
@@ -281,14 +281,14 @@ export async function POST(request: Request) {
 
     if (!urls.length) {
       return Response.json(
-        { error: "No image URLs returned by LLM7." },
+        { error: "No image URLs returned by LXID." },
         { status: 502 },
       );
     }
 
     return Response.json({ images: urls, model, size, n, seed });
   } catch (error) {
-    console.error("LLM7 image generation error", error);
+    console.error("LXID image generation error", error);
     const { message, status } = parseLlm7Error(error);
     return Response.json({ error: message }, { status });
   }

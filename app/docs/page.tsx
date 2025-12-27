@@ -42,10 +42,10 @@ export default function DocsPage() {
               <Badge variant="outline">API Documentation</Badge>
             </div>
             <h1 className="text-3xl font-semibold text-foreground">
-              LLM7 API Documentation
+              LXID API Documentation
             </h1>
             <p className="text-sm text-muted-foreground md:text-base">
-              Dokumentasi internal dan testing endpoint LLM7. Semua request
+              Dokumentasi internal dan testing endpoint LXID. Semua request
               dikirim langsung ke route handler Next.js untuk debugging cepat.
             </p>
           </section>
@@ -58,7 +58,7 @@ export default function DocsPage() {
                   API Intro
                 </div>
                 <p className="text-base text-foreground">
-                  API ini digunakan untuk mengirim prompt ke LLM7.io melalui
+                  API ini digunakan untuk mengirim prompt ke LXID melalui
                   endpoint internal Next.js. Fokus halaman ini adalah
                   testing request, melihat response, dan debugging cepat.
                 </p>

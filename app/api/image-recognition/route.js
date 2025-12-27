@@ -32,7 +32,7 @@ export async function POST(request) {
     );
   }
 
-  // Build request payload for LLM7 vision-capable chat.
+  // Build request payload for LXID vision-capable chat.
   const body = {
     model: "gpt-4o-mini",
     messages: [
@@ -47,7 +47,7 @@ export async function POST(request) {
   };
 
   try {
-    // Call LLM7 API directly (OpenAI-compatible).
+    // Call LXID API directly (OpenAI-compatible).
     const response = await fetch("https://api.llm7.io/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -67,11 +67,11 @@ export async function POST(request) {
       },
     });
   } catch (error) {
-    console.error("LLM7 API error", error);
+    console.error("LXID API error", error);
     return Response.json(
       {
         error:
-          error instanceof Error ? error.message : "LLM7 API error occurred.",
+          error instanceof Error ? error.message : "LXID API error occurred.",
       },
       { status: 500 },
     );

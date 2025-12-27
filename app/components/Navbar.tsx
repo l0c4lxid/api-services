@@ -30,7 +30,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
             </span>
             <div>
               <p className="text-sm font-semibold text-foreground">
-                LLM7 API Console
+                LXID API Console
               </p>
               <p className="text-xs text-muted-foreground">
                 Custom API documentation

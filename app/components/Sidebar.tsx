@@ -53,7 +53,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
             Navigation
           </p>
-          <p className="text-lg font-semibold text-foreground">API Console</p>
+          <p className="text-lg font-semibold text-foreground">LXID Console</p>
         </div>
         <NavContent />
         <div className="mt-auto rounded-2xl border border-border/60 bg-card/70 p-4 text-xs text-muted-foreground">
@@ -81,7 +81,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                 Navigation
               </p>
               <p className="text-lg font-semibold text-foreground">
-                API Console
+                LXID Console
               </p>
             </div>
             <Button

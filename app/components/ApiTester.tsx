@@ -189,7 +189,7 @@ export default function ApiTester({ endpoint }: ApiTesterProps) {
               ))}
             </select>
             <p className="text-xs text-muted-foreground">
-              Pilih model untuk request ke LLM7.
+              Pilih model untuk request ke LXID.
             </p>
           </div>
         ) : null}

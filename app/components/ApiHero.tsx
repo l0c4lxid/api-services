@@ -21,10 +21,10 @@ export default function ApiHero({ totalEndpoints, categories }: ApiHeroProps) {
             </Badge>
             <div>
               <h1 className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
-                LLM7 API
+                LXID API
               </h1>
               <p className="mt-2 text-sm text-muted-foreground md:text-base">
-                Internal API for testing LLM7.io, lengkap dengan custom
+                Internal API for testing LXID, lengkap dengan custom
                 documentation dan testing console.
               </p>
             </div>
@@ -64,7 +64,7 @@ export default function ApiHero({ totalEndpoints, categories }: ApiHeroProps) {
             <div className="absolute inset-0 rounded-2xl border border-white/40" />
             <div className="flex h-full w-full flex-col justify-between p-5">
               <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>api.llm7.internal</span>
+                <span>api.lxid.internal</span>
                 <span>Live metrics</span>
               </div>
               <div className="space-y-2 rounded-xl bg-white/70 p-4 text-xs text-slate-700 shadow-sm backdrop-blur dark:bg-slate-900/70 dark:text-slate-200">

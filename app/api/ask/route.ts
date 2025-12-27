@@ -49,14 +49,14 @@ export async function POST(request: Request) {
     const text = completion.choices?.[0]?.message?.content ?? "";
 
     if (!text) {
-      return new Response("Empty response from LLM7.", { status: 502 });
+      return new Response("Empty response from LXID.", { status: 502 });
     }
 
     return Response.json({ text, model, cost: "Local AI Assistant" });
   } catch (error) {
-    console.error("LLM7 API error", error);
+    console.error("LXID API error", error);
     const message =
-      error instanceof Error ? error.message : "LLM7 API error.";
-    return new Response(`LLM7 API error: ${message}`, { status: 500 });
+      error instanceof Error ? error.message : "LXID API error.";
+    return new Response(`LXID API error: ${message}`, { status: 500 });
   }
 }

@@ -14,9 +14,9 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LLM7 API Console",
+  title: "LXID API Console",
   description:
-    "Custom API documentation and testing console for LLM7 endpoints.",
+    "Custom API documentation and testing console for LXID endpoints.",
 };
 
 export default function RootLayout({

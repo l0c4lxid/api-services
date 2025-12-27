@@ -18,18 +18,18 @@ export type ApiEndpoint = {
 export const apiList: ApiEndpoint[] = [
   {
     id: "llm7-ask",
-    name: "Ask LLM7",
+    name: "Ask LXID",
     method: "POST",
     path: "/api/ask",
-    category: "LLM7",
-    description: "Kirim prompt ke LLM7.io dan terima response text.",
+    category: "LXID",
+    description: "Kirim prompt ke LXID dan terima response text.",
     status: "ready",
     testable: true,
     defaultHeaders: `{
   "Content-Type": "application/json"
 }`,
     defaultBody: `{
-  "prompt": "Hello LLM7",
+  "prompt": "Hello LXID",
   "model": "gpt-4o-mini"
 }`,
     modelOptions: ["gpt-4o-mini", "gpt-4o", "gpt-4.1-mini"],
@@ -74,7 +74,7 @@ export const apiList: ApiEndpoint[] = [
     method: "POST",
     path: "/api/generate-image",
     category: "Vision",
-    description: "Generate image dari prompt menggunakan LLM7.io.",
+    description: "Generate image dari prompt menggunakan LXID.",
     status: "ready",
     testable: true,
     defaultHeaders: `{
