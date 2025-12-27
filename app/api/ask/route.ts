@@ -8,6 +8,9 @@ type AskPayload = {
 };
 
 const DEFAULT_MODEL = "gemini-2.5-flash-lite";
+const IDENTITY_RESPONSE =
+  "Saya adalah Syaid Andhika — Technical Support di UBSI Kampus Solo, " +
+  "fokus pada Web Development, UI/UX, IT Support, dan analisis data.";
 
 export async function POST(request: Request) {
   if (!process.env.LLM7_API_KEY) {
@@ -46,6 +49,8 @@ export async function POST(request: Request) {
     const systemPrompt = `Kamu adalah LXID Assistant.
 Tujuanmu adalah menjawab semua pertanyaan tentang saya, Syaid Andhika.
 Jawab dalam Bahasa Indonesia, ringkas, jelas, dan relevan.
+Jika ada pertanyaan seperti "kamu/anda/siapa kamu", jawab dengan identitas Syaid Andhika.
+Gunakan kalimat identitas singkat ini saat cocok: "${IDENTITY_RESPONSE}"
 
 Tentang Saya — Syaid Andhika:
 - Technical Support di UBSI Kampus Solo, fokus pada Web Development, UI/UX, IT Support, dan analisis data.
