@@ -1,6 +1,7 @@
 import { ThinkingLevel } from "@google/genai";
 import mime from "mime";
 import { gemini } from "@/lib/gemini";
+import { MODEL_DEFINITIONS } from "@/lib/models";
 
 export const runtime = "nodejs";
 
@@ -10,6 +11,10 @@ type ParsedApiError = {
   status?: number;
   message?: string;
 };
+
+const MODEL_MAP = new Map(
+  MODEL_DEFINITIONS.map((model) => [model.id, model]),
+);
 
 function parseGeminiError(error: unknown): ParsedApiError {
   let status: number | undefined;
@@ -72,21 +77,47 @@ export async function POST(request: Request) {
     typeof (payload as { prompt?: string })?.prompt === "string"
       ? (payload as { prompt: string }).prompt.trim()
       : "";
+  const model =
+    typeof (payload as { model?: string })?.model === "string"
+      ? (payload as { model: string }).model.trim()
+      : "gemini-3-flash-preview";
 
   if (!prompt) {
     return new Response("Prompt is required.", { status: 400 });
   }
 
+  const selectedModel = MODEL_MAP.get(model);
+  if (!selectedModel) {
+    return new Response("Model tidak valid.", { status: 400 });
+  }
+
+  if (!selectedModel.supported) {
+    return new Response(
+      `Model ini tidak didukung untuk playground text. ${selectedModel.reason ?? ""}`.trim(),
+      { status: 400 },
+    );
+  }
+
   try {
+    const config: {
+      thinkingConfig?: { thinkingLevel: ThinkingLevel };
+      tools?: { googleSearch: Record<string, never> }[];
+    } = {};
+
+    if (selectedModel.supportsThinking) {
+      config.thinkingConfig = {
+        thinkingLevel: ThinkingLevel.HIGH,
+      };
+    }
+
+    if (selectedModel.supportsTools) {
+      config.tools = [{ googleSearch: {} }];
+    }
+
     const stream = await gemini.models.generateContentStream({
-      model: "gemini-3-flash-preview",
+      model,
       contents: prompt,
-      config: {
-        thinkingConfig: {
-          thinkingLevel: ThinkingLevel.HIGH,
-        },
-        tools: [{ googleSearch: {} }],
-      },
+      config,
     });
 
     const readableStream = new ReadableStream({

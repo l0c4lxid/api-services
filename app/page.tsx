@@ -12,6 +12,7 @@
 import { useCallback, useRef, useState } from "react";
 import PromptForm from "@/components/PromptForm";
 import ResponseViewer from "@/components/ResponseViewer";
+import { DEFAULT_MODEL, MODEL_DEFINITIONS } from "@/lib/models";
 
 const PRESET_PROMPTS = [
   {
@@ -28,12 +29,24 @@ const PRESET_PROMPTS = [
   },
 ];
 
+const MODEL_OPTIONS = MODEL_DEFINITIONS.map((model) => ({
+  label: model.label,
+  value: model.id,
+  helper: model.helper,
+  disabled: !model.supported,
+  reason: model.reason,
+}));
+
 export default function Home() {
   const [prompt, setPrompt] = useState("");
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [model, setModel] = useState(DEFAULT_MODEL);
+  const currentModel = MODEL_DEFINITIONS.find((item) => item.id === model);
+  const thinkingEnabled = currentModel?.supportsThinking ?? false;
+  const toolsEnabled = currentModel?.supportsTools ?? false;
 
   const controllerRef = useRef<AbortController | null>(null);
   const requestIdRef = useRef(0);
@@ -64,7 +77,7 @@ export default function Home() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ prompt: trimmedPrompt }),
+        body: JSON.stringify({ prompt: trimmedPrompt, model }),
         signal: controller.signal,
       });
 
@@ -180,9 +193,12 @@ export default function Home() {
                 <PromptForm
                   prompt={prompt}
                   presets={PRESET_PROMPTS}
+                  model={model}
+                  models={MODEL_OPTIONS}
                   loading={loading}
                   error={error}
                   onPromptChange={setPrompt}
+                  onModelChange={setModel}
                   onPreset={handlePreset}
                   onClear={handleClear}
                   onSubmit={handleGenerate}
@@ -198,8 +214,11 @@ export default function Home() {
 
               <div className="rounded-2xl border border-white/10 bg-slate-950/40 p-4 text-xs text-slate-400">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span>Model: gemini-3-flash-preview</span>
-                  <span>Thinking level: HIGH</span>
+                  <span>Model: {model}</span>
+                  <span>
+                    Thinking level: {thinkingEnabled ? "HIGH" : "Off"}
+                  </span>
+                  <span>Tools: {toolsEnabled ? "Google Search" : "Off"}</span>
                   <span>Route: /api/gemini</span>
                 </div>
               </div>

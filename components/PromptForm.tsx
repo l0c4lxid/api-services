@@ -3,12 +3,23 @@ type Preset = {
   value: string;
 };
 
+type ModelOption = {
+  label: string;
+  value: string;
+  helper?: string;
+  disabled?: boolean;
+  reason?: string;
+};
+
 type PromptFormProps = {
   prompt: string;
   presets: Preset[];
+  model: string;
+  models: ModelOption[];
   loading: boolean;
   error?: string | null;
   onPromptChange: (value: string) => void;
+  onModelChange: (value: string) => void;
   onPreset: (value: string) => void;
   onClear: () => void;
   onSubmit: () => void;
@@ -17,9 +28,12 @@ type PromptFormProps = {
 export default function PromptForm({
   prompt,
   presets,
+  model,
+  models,
   loading,
   error,
   onPromptChange,
+  onModelChange,
   onPreset,
   onClear,
   onSubmit,
@@ -55,6 +69,31 @@ export default function PromptForm({
             Tips: Use clear instructions or add constraints for better results.
           </p>
         )}
+      </div>
+
+      <div className="space-y-2">
+        <label htmlFor="model" className="text-sm font-semibold text-slate-100">
+          Model
+        </label>
+        <select
+          id="model"
+          name="model"
+          value={model}
+          onChange={(event) => onModelChange(event.target.value)}
+          className="w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 shadow-inner shadow-black/40 outline-none transition focus:border-indigo-400/70 focus:ring-2 focus:ring-indigo-500/30"
+        >
+          {models.map((option) => (
+            <option
+              key={option.value}
+              value={option.value}
+              disabled={option.disabled}
+            >
+              {option.label}
+              {option.helper ? ` — ${option.helper}` : ""}
+              {option.reason ? ` (${option.reason})` : ""}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="flex flex-wrap gap-2">
