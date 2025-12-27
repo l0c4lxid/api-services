@@ -1,14 +1,9 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Manrope } from "next/font/google";
+import { JetBrains_Mono } from "next/font/google";
 import "./styles/globals.css";
 
-const manrope = Manrope({
-  variable: "--font-manrope",
-  subsets: ["latin"],
-});
-
-const ibmPlexMono = IBM_Plex_Mono({
-  variable: "--font-ibm-plex-mono",
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
   weight: ["400", "500", "600"],
   subsets: ["latin"],
 });
@@ -27,7 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${manrope.variable} ${ibmPlexMono.variable} min-h-screen bg-background text-foreground antialiased`}
+        className={`${jetbrainsMono.variable} min-h-screen bg-background text-foreground antialiased`}
       >
         {children}
       </body>
