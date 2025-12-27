@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Script from "next/script";
 import { BookOpen, FileJson, Terminal } from "lucide-react";
 import EndpointCard from "@/app/components/EndpointCard";
 import Navbar from "@/app/components/Navbar";
@@ -30,6 +31,7 @@ export default function DocsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      <Script src="https://js.puter.com/v2/" strategy="afterInteractive" />
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="lg:pl-72">

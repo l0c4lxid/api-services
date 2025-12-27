@@ -5,7 +5,7 @@ export async function POST(request) {
   // Validate API key existence.
   if (!process.env.LLM7_API_KEY) {
     return Response.json(
-      { error: "Missing LLM7_API_KEY. Check .env.local." },
+      { code: 500, error: "Missing LLM7_API_KEY. Check .env.local." },
       { status: 500 },
     );
   }
@@ -16,7 +16,10 @@ export async function POST(request) {
     payload = await request.json();
   } catch (error) {
     console.error("Invalid JSON payload", error);
-    return Response.json({ error: "Invalid JSON payload." }, { status: 400 });
+    return Response.json(
+      { code: 400, error: "Invalid JSON payload." },
+      { status: 400 },
+    );
   }
 
   const prompt =
@@ -27,7 +30,7 @@ export async function POST(request) {
   // Basic input validation.
   if (!prompt || !imageUrl) {
     return Response.json(
-      { error: "prompt and imageUrl are required." },
+      { code: 400, error: "prompt and imageUrl are required." },
       { status: 400 },
     );
   }
@@ -62,19 +65,23 @@ export async function POST(request) {
       body: JSON.stringify(body),
     });
 
-    // Return upstream response as-is.
     const text = await response.text();
-    return new Response(text, {
-      status: response.status,
-      headers: {
-        "Content-Type":
-          response.headers.get("content-type") ?? "application/json",
-      },
-    });
+    let parsed;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      parsed = text;
+    }
+    const payload = response.ok
+      ? { code: response.status, data: parsed }
+      : { code: response.status, error: parsed };
+
+    return Response.json(payload, { status: response.status });
   } catch (error) {
     console.error("LXID API error", error);
     return Response.json(
       {
+        code: 500,
         error:
           error instanceof Error ? error.message : "LXID API error occurred.",
       },

@@ -33,6 +33,16 @@ const LXID_MODELS = [
 
 const DEFAULT_LXID_MODEL = "gemini-2.5-flash-lite";
 
+const PUTER_IMAGE_MODELS = [
+  "gpt-image-1",
+  "dall-e-3",
+  "gemini-2.5-flash-image-preview",
+  "stabilityai/stable-diffusion-3-medium",
+  "black-forest-labs/FLUX.1-schnell",
+];
+
+const DEFAULT_PUTER_IMAGE_MODEL = "gpt-image-1";
+
 export const apiList: ApiEndpoint[] = [
   {
     id: "llm7-ask",
@@ -88,12 +98,13 @@ export const apiList: ApiEndpoint[] = [
     defaultModel: DEFAULT_LXID_MODEL,
   },
   {
-    id: "generate-image",
-    name: "Image Generation",
+    id: "image-generate",
+    name: "Image Generate (Puter.js)",
     method: "POST",
-    path: "/api/generate-image",
-    category: "Vision",
-    description: "Generate image dari prompt menggunakan LXID.",
+    path: "/api/image-generate",
+    category: "Puter",
+    description:
+      "Validasi prompt untuk image generation via Puter.js (client-side).",
     status: "ready",
     testable: true,
     defaultHeaders: `{
@@ -101,9 +112,10 @@ export const apiList: ApiEndpoint[] = [
 }`,
     defaultBody: `{
   "prompt": "A minimal dashboard UI on a dark background",
-  "size": "1024x1024",
-  "n": 1,
-  "seed": 123
+  "model": "${DEFAULT_PUTER_IMAGE_MODEL}",
+  "quality": "standard"
 }`,
+    modelOptions: PUTER_IMAGE_MODELS,
+    defaultModel: DEFAULT_PUTER_IMAGE_MODEL,
   },
 ];

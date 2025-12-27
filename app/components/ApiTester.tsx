@@ -16,6 +16,21 @@ type ParsedPayload = {
   body?: string;
 };
 
+type PuterApi = {
+  ai?: {
+    txt2img?: (
+      prompt: string,
+      options?: Record<string, unknown>,
+    ) => Promise<unknown>;
+  };
+};
+
+declare global {
+  interface Window {
+    puter?: PuterApi;
+  }
+}
+
 function parseJsonField(value: string, fieldName: string) {
   if (!value.trim()) {
     return {};
@@ -46,6 +61,7 @@ export default function ApiTester({ endpoint }: ApiTesterProps) {
   const [model, setModel] = useState(initialModel);
   const [status, setStatus] = useState<number | null>(null);
   const [response, setResponse] = useState("");
+  const [imageResult, setImageResult] = useState<string | null>(null);
   const [duration, setDuration] = useState<number | null>(null);
   const [costLabel, setCostLabel] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -71,6 +87,7 @@ export default function ApiTester({ endpoint }: ApiTesterProps) {
   const handleSend = async () => {
     setError(null);
     setResponse("");
+    setImageResult(null);
     setStatus(null);
     setDuration(null);
 
@@ -109,8 +126,9 @@ export default function ApiTester({ endpoint }: ApiTesterProps) {
 
       let output = result.text;
       let extractedCost: string | null = "Local AI Assistant";
+      let parsedJson: unknown = null;
       try {
-        const parsedJson = JSON.parse(result.text);
+        parsedJson = JSON.parse(result.text);
         if (typeof parsedJson?.text === "string") {
           output = parsedJson.text;
         } else if (parsedJson && typeof parsedJson === "object") {
@@ -129,6 +147,52 @@ export default function ApiTester({ endpoint }: ApiTesterProps) {
       setCostLabel(extractedCost);
       if (!result.ok) {
         setError(`API Error: ${result.text || "Unknown error"}`);
+      } else if (
+        endpoint.id === "image-generate" &&
+        parsedJson &&
+        typeof parsedJson === "object"
+      ) {
+        const payload = parsedJson as {
+          config?: { prompt?: string; model?: string; quality?: string };
+          success?: boolean;
+          error?: string;
+        };
+
+        if (!payload.success) {
+          setError(payload.error || "Image generation failed.");
+          return;
+        }
+
+        const promptValue =
+          typeof payload.config?.prompt === "string"
+            ? payload.config.prompt
+            : "";
+        const modelValue =
+          typeof payload.config?.model === "string"
+            ? payload.config.model
+            : "";
+        const qualityValue =
+          typeof payload.config?.quality === "string"
+            ? payload.config.quality
+            : "";
+
+        if (!window.puter?.ai?.txt2img) {
+          setError("Puter.js belum siap. Refresh halaman /docs.");
+          return;
+        }
+
+        try {
+          const puterResult = await window.puter.ai.txt2img(promptValue, {
+            model: modelValue,
+            ...(qualityValue ? { quality: qualityValue } : {}),
+          });
+          const resolved = resolveImage(puterResult);
+          setImageResult(resolved);
+        } catch (err) {
+          setError(
+            err instanceof Error ? err.message : "Puter image generation failed.",
+          );
+        }
       }
     } catch (err) {
       setError(
@@ -145,9 +209,31 @@ export default function ApiTester({ endpoint }: ApiTesterProps) {
     setModel(initialModel);
     setStatus(null);
     setResponse("");
+    setImageResult(null);
     setDuration(null);
     setCostLabel(null);
     setError(null);
+  };
+
+  const resolveImage = (result: unknown) => {
+    if (typeof result === "string") {
+      return result;
+    }
+    if (result && typeof result === "object") {
+      const anyResult = result as {
+        url?: string;
+        image?: string;
+        html?: string;
+        data?: { url?: string }[];
+      };
+      if (anyResult.url) return anyResult.url;
+      if (anyResult.image) return anyResult.image;
+      if (anyResult.html) return anyResult.html;
+      if (Array.isArray(anyResult.data) && anyResult.data[0]?.url) {
+        return anyResult.data[0].url ?? null;
+      }
+    }
+    return JSON.stringify(result, null, 2);
   };
 
   return (
@@ -163,53 +249,56 @@ export default function ApiTester({ endpoint }: ApiTesterProps) {
             className="h-32 resize-none overflow-hidden font-mono text-xs"
           />
         </div>
-        {endpoint.modelOptions?.length ? (
+
+        <div className="space-y-4">
+          {endpoint.modelOptions?.length ? (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                Model
+              </p>
+              <select
+                value={model}
+                onChange={(event) => {
+                  const nextModel = event.target.value;
+                  setModel(nextModel);
+                  updateBodyWithModel(nextModel);
+                  setStatus(null);
+                  setResponse("");
+                  setDuration(null);
+                  setCostLabel(null);
+                  setError(null);
+                }}
+                className="h-10 w-full rounded-md border border-input bg-background px-3 text-xs font-mono text-foreground"
+              >
+                {endpoint.modelOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-muted-foreground">
+                Pilih model untuk request ke LXID.
+              </p>
+            </div>
+          ) : null}
+
           <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-              Model
+              Request Body (JSON)
             </p>
-            <select
-              value={model}
-              onChange={(event) => {
-                const nextModel = event.target.value;
-                setModel(nextModel);
-                updateBodyWithModel(nextModel);
-                setStatus(null);
-                setResponse("");
-                setDuration(null);
-                setCostLabel(null);
-                setError(null);
-              }}
-              className="h-10 w-full rounded-md border border-input bg-background px-3 text-xs font-mono text-foreground"
-            >
-              {endpoint.modelOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-            <p className="text-xs text-muted-foreground">
-              Pilih model untuk request ke LXID.
-            </p>
+            <Textarea
+              value={body}
+              onChange={(event) => setBody(event.target.value)}
+              className="h-40 resize-none overflow-hidden font-mono text-xs"
+              disabled={endpoint.method === "GET"}
+            />
+            {endpoint.method === "GET" ? (
+              <p className="text-xs text-muted-foreground">
+                Request body diabaikan untuk method GET.
+              </p>
+            ) : null}
           </div>
-        ) : null}
-      </div>
-
-      <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-          Request Body (JSON)
-        </p>
-        <Textarea
-          value={body}
-          onChange={(event) => setBody(event.target.value)}
-          className="h-40 resize-none overflow-hidden font-mono text-xs"
-          disabled={endpoint.method === "GET"}
-        />
-        {endpoint.method === "GET" ? (
-          <p className="text-xs text-muted-foreground">
-            Request body diabaikan untuk method GET.
-          </p>
-        ) : null}
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -246,6 +335,26 @@ export default function ApiTester({ endpoint }: ApiTesterProps) {
           Response
         </p>
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
+        {imageResult ? (
+          <div className="overflow-hidden rounded-xl border border-border/60 bg-background/80 p-4">
+            {imageResult.trim().startsWith("<img") ? (
+              <div
+                dangerouslySetInnerHTML={{ __html: imageResult }}
+              />
+            ) : imageResult.startsWith("data:") ||
+              imageResult.startsWith("http") ? (
+              <img
+                src={imageResult}
+                alt="Generated"
+                className="h-auto w-full rounded-lg object-cover"
+              />
+            ) : (
+              <pre className="max-h-[240px] overflow-auto text-xs text-foreground">
+                {imageResult}
+              </pre>
+            )}
+          </div>
+        ) : null}
         <pre className="max-h-[320px] overflow-auto rounded-xl border border-border/60 bg-muted/40 p-4 font-mono text-xs text-foreground">
           {response || "Response akan tampil di sini."}
         </pre>

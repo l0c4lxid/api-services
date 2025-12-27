@@ -11,9 +11,10 @@ const DEFAULT_MODEL = "gemini-2.5-flash-lite";
 
 export async function POST(request: Request) {
   if (!process.env.LLM7_API_KEY) {
-    return new Response("Missing LLM7_API_KEY. Check .env.local.", {
-      status: 500,
-    });
+    return Response.json(
+      { code: 500, error: "Missing LLM7_API_KEY. Check .env.local." },
+      { status: 500 },
+    );
   }
 
   let payload: AskPayload;
@@ -21,7 +22,10 @@ export async function POST(request: Request) {
     payload = (await request.json()) as AskPayload;
   } catch (error) {
     console.error("Invalid JSON payload", error);
-    return new Response("Invalid JSON payload.", { status: 400 });
+    return Response.json(
+      { code: 400, error: "Invalid JSON payload." },
+      { status: 400 },
+    );
   }
 
   const prompt =
@@ -32,7 +36,10 @@ export async function POST(request: Request) {
       : DEFAULT_MODEL;
 
   if (!prompt) {
-    return new Response("Prompt is required.", { status: 400 });
+    return Response.json(
+      { code: 400, error: "Prompt is required." },
+      { status: 400 },
+    );
   }
 
   try {
@@ -51,14 +58,25 @@ export async function POST(request: Request) {
     const text = completion.choices?.[0]?.message?.content ?? "";
 
     if (!text) {
-      return new Response("Empty response from LXID.", { status: 502 });
+      return Response.json(
+        { code: 502, error: "Empty response from LXID." },
+        { status: 502 },
+      );
     }
 
-    return Response.json({ text, model, cost: "Local AI Assistant" });
+    return Response.json({
+      code: 200,
+      text,
+      model,
+      cost: "Local AI Assistant",
+    });
   } catch (error) {
     console.error("LXID API error", error);
     const message =
       error instanceof Error ? error.message : "LXID API error.";
-    return new Response(`LXID API error: ${message}`, { status: 500 });
+    return Response.json(
+      { code: 500, error: `LXID API error: ${message}` },
+      { status: 500 },
+    );
   }
 }
